@@ -1,6 +1,6 @@
 # Demo, Quarto
 
-HTML dashboard on a statistical technique using R. Right click to: <a href="https://https://ugolabo.github.io/demo_quarto_dashboard_html_churn/" target="_blank">site</a>.  
+HTML dashboard on a statistical technique using R. Right click to: <a href="https://ugolabo.github.io/demo_quarto_dashboard_html_churn/demo_customer_churn_analysis_dashboard.html/" target="_blank">site</a>.  
 This dashboard provides a concise summary of the full analysis found in the demo_quarto_report_tufte_html_churn repo.  
 There are [two ways to publish](#publish) a Quarto document on GitHub.
 
