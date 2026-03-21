@@ -22,7 +22,7 @@ jobs:
           use-public-rspm: true
 
       - name: Install Dependencies
-         run: |
+        run: |
           Rscript -e "install.packages('renv')"
           Rscript -e "renv::restore()"
 # Instead of run: |
@@ -37,7 +37,6 @@ jobs:
 # .Rprofile
 # renv/
 # after init(), install new package with install.packages(), add it with renv::snapshot()
-
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
