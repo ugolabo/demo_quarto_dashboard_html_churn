@@ -52,7 +52,7 @@ params:
 ```{r}
 #| label: setup
 #| include: false
-setwd("/home/ugo/Documents/CoursR/demo_qmd_dashboard")
+#setwd("/home/ugo/Documents/CoursR/demo_qmd_dashboard")
 
 library(ggplot2)
 library(gridExtra)
