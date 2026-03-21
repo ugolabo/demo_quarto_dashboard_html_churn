@@ -1,0 +1,736 @@
+---
+title: "demo"
+subtitle: customer_churn_analysis
+author:
+#  - name: Copyright © 2025 Hugues Santerre
+  - name: Colleague One
+    email: colleague_one@email.com  # si html
+    affiliations: position, department...  # si html
+  - name: Colleague Two
+    email: colleague_two@email.com
+    affiliations: position, department...
+institute:
+  - "organization,\n\naddress\n\nwebsite..."  # si html
+  - "organization,\n\naddress\n\nwebsite..."
+editor: source
+editor_options:
+  chunk_output_type: console
+callout-appearance: default
+execute:
+  echo: true  # true, false, fenced
+  include: true
+  eval: true
+  enabled: true  # false ; lorsque le doc n'a pas de code, que de la prose / markdown
+  output: true  # true, false, asis
+  warning: false
+  message: false
+  error: false
+  cache: false  # true, false, refresh
+  freeze: false  # true, false, auto ; en mode Project
+  keep-md: false
+  keep-ipynb: false
+knitr:
+  opts_chunk:
+    comment: ""
+    results: hold  # markup, asis, hold, hide
+    R.options:
+      knitr.graphics.auto_pdf: true
+  opts_knit:
+    verbose: true
+format:
+  dashboard:
+    theme: journal  # cosmo, journal, united, darkly, etc. + custom
+    nav-bar: true  # barre latérale pour la navigation
+    scrolling: true  # menu déroulant est dans la page
+    orientation: rows  ## rows d'abord, columns d'abord
+    logo: img/spark.png
+engine: knitr
+params:
+  zoom: 3
+---
+
+```{r}
+#| label: setup
+#| include: false
+setwd("/home/ugo/Documents/CoursR/demo_qmd_dashboard")
+
+library(ggplot2)
+library(gridExtra)
+library(ggthemes)
+library(eha)
+library(survival)
+library(kableExtra)
+```
+
+# Definition
+
+## Row1
+
+### Colonne A {width=33%}
+
+::: {.card title="**Introduction to Customer Churn**" width=100%}
+
+**Customer churn** is when a customer cancels their subscription or stops using your service. This can happen for many reasons, from being unhappy with the service to finding a better deal with a competitor.
+
+**Understanding why customers leave is crucial** for a business because a long-term customer base means a stable, predictable stream of revenue. **The longer a customer stays subscribed, the more valuable they are**.
+
+While this is easy to see in industries like **telecommunications**, the subscription model is common in many other sectors:
+
+- **Insurance**: Customers can choose to let their policy lapse.
+- **Mortgages**: Homeowners might pay off their mortgage early.
+- **Retail**: Shoppers may stop making repeat purchases from a mail-order catalog or online store.
+
+A *lower churn** increases the **Customer Lifetime Value** (CLV).
+
+Lowering your average churn rate means customers stay subscribed for longer, boosts your Customer Lifetime Value (CLV), also known as **Lifetime Value** (LTV), which directly leads to **higher total revenue over time**.
+
+:::
+
+### Colonne B {width=33%}
+
+::: {.card title="**Survival Analysis to Predict Customer Churn**" width=100%}
+
+**Survival analysis** is a powerful statistical method for **modeling churn**. While traditionally used in **medicine** to track how long patients "survive" before an event like death, it can be applied to **business** to understand customer behavior.
+
+By using Survival Analysis, we can gain valuable insights into churn, such as:
+
+- Predicting **churn likelihood over time**: visualize and understand how the probability of a customer churning changes throughout their subscription.
+- Identifying key **churn **drivers**: determine which factors or customer characteristics are most likely to lead to churn.
+
+Survival Analysis provides deep insights into customer behavior, allowing us to:
+
+- Estimate **customer duration**: calculate the average time customers remain subscribed.
+- Compare different **customer segments**: for example, analyze if male and female customers have different average subscription lengths.
+- Validate **business assumptions**: test whether your understanding of the customer lifecycle aligns with real-world data.
+
+:::
+
+### Colonne C {width=33%}
+
+#### Onglet alpha
+
+![Survival Analysis, Source : [Barry Analytics](http://www.barryanalytics.com/Downloads/Presentations/Survival%20Analysis.pdf).](img/survival_analysis.png){width=100%}
+
+#### Onglet beta
+
+::: {.card title="**Survival Regression to Predict Customer Churn**" width=100%}
+
+**Survival regression**, a related technique, takes this further by allowing us to model the **relationship between churn, time and specific customer characteristics** (known as covariates). This helps us identify and quantify the factors that drive churn.
+
+<center>
+![](img/img6.png){width=50%}
+</center>
+
+:::
+
+# Data
+
+## Row 1
+
+**The Dataset**
+
+For this analysis, we use a dataset provided by [IBM](https://github.com/IBM/telco-customer-churn-on-icp4d) that details a fictional telecommunications company's subscriber base.
+
+## Row 2
+
+### Colonne A {width=33%}
+
+::: {.card title="**The Variables**" width=100%}
+
+The dataset includes information on **7,043 customers**, with **20 variables** per customer. The majority of these variables are categorical:
+
+- Categorical variables: `gender`, `SeniorCitizen`, `Partner`, `Dependents`, `PhoneService`, `MultipleLines`, `InternetService`, `OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`, `Contract`, `PaperlessBilling`, `PaymentMethod` and `Churn`.
+- Numeric variables: `tenure`, `MonthlyCharges` and `TotalCharges`.
+
+Our Survival Analysis focuses on the duration of each subscription, or `tenure`. Customers are categorized based on their churn status: `Churn = 1` for those who opted out during the observation period and `Churn = 0` for those who remained subscribed.
+
+:::
+
+```{r}
+#| include: false
+telco <- readr::read_csv("data/Telco-Customer-Churn.csv")
+
+telco
+str(telco)
+
+telco$MonthlyCharges
+telco$TotalCharges
+```
+
+### Colonne B {width=33%}
+
+#### Onglet alpha
+
+```{r}
+#| echo: false
+#| title: "**Distribution of Monthly Charges**"
+# fig-height: 4
+# padding: 10px
+hist_1 <- ggplot(telco, aes(x = MonthlyCharges)) +
+  geom_histogram(fill = '#377EB8',
+                 binwidth = 10) +
+  labs(x = 'Monthly Charges',
+       y = 'Number of Subscribers') +
+  theme_tufte(base_size = 16)
+  
+hist_2 <- ggplot(telco, aes(x = MonthlyCharges)) +
+  geom_histogram(aes(y = ..density..),
+                 fill = '#377EB8',
+                 binwidth = 10) +
+  labs(x = 'Monthly Charges',
+       y = 'Density of Subscribers (%)') +
+  theme_tufte(base_size = 16)
+
+grid.arrange(hist_1, hist_2, nrow = 2)
+```
+
+#### Onglet beta
+
+```{r}
+#| content: valuebox
+#| title: "Mean Montly Charge"
+moyenne <- round(mean(telco$MonthlyCharges), 2)
+list(
+  icon = "align-center",  # https://icons.getbootstrap.com/
+  color = "success",  # primary (peau), secondary (gris), success (vert), info (bleu pervenche), warning (jaune), danger (brique), light (blanc), dark (noir)
+  value = moyenne
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Median Montly Charge"
+mediane <- round(median(telco$MonthlyCharges), 2)
+list(
+  icon = "border-center",  # https://icons.getbootstrap.com/
+  color = "info",  # primary (peau), secondary (gris), success (vert), info (bleu pervenche), warning (jaune), danger (brique), light (blanc), dark (noir)
+  value = mediane
+)
+```
+
+### Colonne C {width=33%}
+
+#### Onglet alpha
+
+```{r}
+#| echo: false
+#| title: "**Distribution of Total Charges**"
+# fig-height: 4
+# padding: 10px
+hist_1 <- ggplot(telco, aes(x = TotalCharges)) +
+  geom_histogram(fill = '#377EB8',
+                 binwidth = 10) +
+  labs(x = 'Total Charges',
+       y = 'Number of Subscribers') +
+  theme_tufte(base_size = 16)
+  
+hist_2 <- ggplot(telco, aes(x = TotalCharges)) +
+  geom_histogram(aes(y = ..density..),
+                 fill = '#377EB8',
+                 binwidth = 10) +
+  labs(x = 'Total Charges',
+       y = 'Density of Subscribers (%)') +
+  theme_tufte(base_size = 16)
+
+grid.arrange(hist_1, hist_2, nrow = 2)
+```
+
+#### Onglet beta
+
+```{r}
+#| content: valuebox
+#| title: "Mean Total Charge"
+moyenne_t <- round(mean(telco$TotalCharges, na.rm = TRUE), 2)
+list(
+  icon = "align-center",  # https://icons.getbootstrap.com/
+  color = "warning",  # primary (peau), secondary (gris), success (vert), info (bleu pervenche), warning (jaune), danger (brique), light (blanc), dark (noir)
+  value = moyenne_t
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Median Total Charge"
+mediane_t <- round(median(telco$TotalCharges, na.rm = TRUE), 2)
+list(
+  icon = "border-center",  # https://icons.getbootstrap.com/
+  color = "danger",  # primary (peau), secondary (gris), success (vert), info (bleu pervenche), warning (jaune), danger (brique), light (blanc), dark (noir)
+  value = mediane_t
+)
+```
+
+## Row 3
+
+**Modeling Churn with Survival Curves**
+
+The **survival curve** is a fundamental tool in Survival Analysis. It illustrates the probability that a customer will remain subscribed over a given period. As time progresses, the probability of survival decreases and the risk of churn increases.
+
+# Model 1
+
+## Row 1
+
+**Survival Analysis**
+
+## Row 2
+
+### Colonne A {width=33%}
+
+::: {.card title="**Proportional Hazards Models**" width=100%}
+
+`tenure` and `Churn` are the two **dependent variables**.
+
+We begin with a Weibull Proportional Hazards (PH) model, using two **independant variables** or covariates:
+
+- Subscribers' `Contract` type.
+- Whether they have `MultipleLines`.
+
+A **covariate** is an explanatory variable used in a model.
+
+The Weibull distribution is a common choice for estimating the survival curve, as it is a natural fit for modeling **time-to-event data**, such as a machine's time to failure, a patient time to death or a customer's time to churn.
+
+:::
+
+::: {.card title="**Second takeway**" width=100%}
+
+The **hazard curve** (or function) is decreasing. The **hazard of churn** is highest in the first 7 to 10 months (duration). After this initial period, the hazard rapidly declines and then flattens out.
+
+This behavior directly explains the shape of the **survival curve** (or function) : the high initial hazard causes the steep drop in the number of subscribers, while the subsequent decline and flattening of the hazard curve is reflected in the survival curve's deceleration over time.
+
+A comprehensive breakdown of every coefficient, calculation, ratio and rate -- including their full interpretations -- is beyond the scope of this dashboard.
+:::
+
+### Colonne B {width=33%}
+
+```{r}
+#| include: false
+# Check the dataset
+str(telco)
+telco[1, ]
+
+# Remove the tenure = 0
+summary(telco$tenure)
+dim(telco)
+
+telco2 <- subset(telco, telco$tenure != 0)
+
+summary(telco2$tenure)
+dim(telco2)
+
+# Convert str to fct
+telco2$Churn <- as.factor(telco2$Churn)
+telco2$Contract <- as.factor(telco2$Contract)
+telco2$MultipleLines <- as.factor(telco2$MultipleLines)
+telco2$gender <- as.factor(telco2$gender)
+telco2$Dependents <- as.factor(telco2$Dependents)
+telco2$SeniorCitizen <- as.factor(telco2$SeniorCitizen)
+telco2$PaperlessBilling <- as.factor(telco2$PaperlessBilling)
+
+
+# Convert Churn
+levels(telco2$Churn) <- c(0, 1)
+
+# Convert Churn, fct to int
+telco2$Churn <- as.integer(telco2$Churn)
+
+# Check
+telco$Churn[1:10]
+telco2$Churn[1:10]
+
+summary(telco2$tenure)
+summary(telco2$Churn)
+summary(telco2$Contract)
+summary(telco2$MultipleLines)
+summary(telco2$SeniorCitizen)
+summary(telco2$PaperlessBilling)
+```
+
+```{r}
+#| include: false
+# PH regression
+# On the left side, only dbl, int
+# On the right side, only fct
+# telco2
+# left
+#   $tenure int
+#   $Churn int
+# right (covariates)
+#   $Contract fct
+#   $MultipleLines fct
+weibull_ph_model <- eha::phreg(Surv(tenure, Churn) ~ Contract + MultipleLines,
+                          dist = 'weibull',
+                          data = telco2)
+
+summary(weibull_ph_model)
+
+attributes(weibull_ph_model)
+```
+
+```{r}
+#| echo: false
+#| title: "**Survival Curve**"
+# fig-height: 4
+# padding: 10px
+plot(weibull_ph_model, fn = c('sur'),
+     col = 'red3', lwd = 2,
+     printLegend = TRUE, cex.lab = 1.4)
+
+grid()
+```
+
+```{r}
+#| echo: false
+#| title: "**Hazard Curve**"
+# fig-height: 4
+# padding: 10px
+plot(weibull_ph_model, fn = c('haz'),
+     col = 'red3', lwd = 2,
+     printLegend = TRUE, cex.main = 1.4, cex.lab = 1.4)
+
+grid()
+```
+
+### Colonne C {width=33%}
+
+::: {.card title="**First Takeway**" width=100%}
+
+The **survival curve** (or function) is a vital tool for validating whether the analytical model aligns with your business's understanding of the customer lifecycle.
+
+As time passes (longer duration in months), the number of subscribers steadily decreases (the pourcentage of subscriber since the inception).
+
+The **survival curve** reveals a significant **churn rate**, with the **survival rate dropping to 50% after just 24 months**. Due to this substantial early churn, long-term predictions become less reliable. For example, with fewer than 20% of the original subscribers remaining after 70 months, the model's ability to make precise forecasts is significantly reduced.
+
+:::
+
+::: {.card title="**Third takeway**" width=100%}
+
+With `tenure` and `Churn` as the **dependent variables**, the models uses two **independant variables** or covariates: Subscribers' `Contract` type and whether they have `MultipleLines`.
+
+One-year and two-year **contracts decrease the hazard of churn**, holding all other variables constant. A contract is effective at **reducing churn risk**, making the curve less steep, indicating a lower risk and better survival. For example, a two-year contract has the highest positive effect, making the curve less steep (a shallower descent) and showing better survival over time.
+
+:::
+
+# Model 1b
+
+## Row 1
+
+**Comparing Survival Curves**
+
+In Survival Analysis, we can also compare survival curves across different **customer segments** to gain deeper insights into churn behavior.
+
+## Row 2 {.tabset}
+
+### Genders
+
+#### Row 3
+
+##### Colonne A {width=50%}
+
+We might want to know if there is a difference in churn rates between genders.
+
+::: {height="300px"}
+
+```{r}
+#| echo: false
+churn_gender <- table(telco$Churn, telco$gender)
+churn_gender2 <- round(prop.table(churn_gender)*100, 2)
+
+knitr::kable(churn_gender2) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
+```
+
+```{r}
+#| echo: false
+# title: "****"
+# fig-height: 4
+# padding: 10px
+mosaicplot(telco$gender ~ telco$Churn,
+           xlab = 'Gender', ylab = 'Churn',
+           main = '',
+           col = c(0, '#377EB8'), cex = 1.4)
+```
+
+:::
+
+It appears that the churn rates for males and females are quite similar.
+
+While a simple **count** of total churned customers by gender is a good starting point, it does not account for the duration of their subscriptions or the size of each group. Survival Analysis allows us to move beyond these simple counts to see if the **risk of churn** changes differently for each segment over time.
+
+##### Colonne B {width=50%}
+
+With `tenure` and `Churn` as the dependent variables, the models uses two independant variables or covariates: Subscribers' `Contract` type and whether they have `MultipleLines`.
+
+We stratify the results by `gender`.
+
+```{r}
+#| include: false
+# PH regression
+weibull_ph_model_2 <- eha::phreg(Surv(tenure, Churn) ~ Contract + MultipleLines + strata(gender),
+                           dist = 'weibull',
+                           data = telco2)
+
+summary(weibull_ph_model_2)
+
+attributes(weibull_ph_model_2)
+```
+
+```{r}
+#| echo: false
+# title: "****"
+# fig-height: 4
+# padding: 10px
+plot(weibull_ph_model_2, fn = c('sur'),
+     col = c('darkgreen', 'red3'), lwd = 2,
+     printLegend = FALSE, cex.main = 1.4, cex.lab = 1.4)
+
+grid()
+
+legend('topright', inset = 0.02,
+       c('Female', 'Male'), lty = c(1,2),
+       col = c('darkgreen', 'red3'), lwd = 2, cex = 1.4)
+```
+
+The survival curves for the subgroups are nearly identical and closely resemble the survival curve of the overall population. This suggests that **`gender` does not have a significant impact on duration or survival time**.
+
+### Dependents
+
+#### Colonne A {width=50%}
+
+What would be the difference between customers who have `Dependents` (children) or not.
+
+With `tenure` and `Churn` as the dependent variables, the models uses two independant variables or covariates: Subscribers' `Contract` type and whether they have `MultipleLines`.
+
+This time, we stratify the results by `Dependents` (children) or not.
+
+```{r}
+#| include: false
+# PH regression
+weibull_ph_model_3 <- eha::phreg(Surv(tenure, Churn) ~ Contract + MultipleLines + strata(Dependents),
+                          dist = 'weibull',
+                          data = telco2)
+
+summary(weibull_ph_model_3)
+
+attributes(weibull_ph_model_3)
+```
+
+```{r}
+#| echo: false
+# title: "****"
+# fig-height: 4
+# padding: 10px
+plot(weibull_ph_model_3, fn = c('sur'),
+     col = c('darkgreen', 'red3'), lwd = 2,
+     printLegend = FALSE, cex.lab = 1.4)
+
+grid()
+
+legend('topright', inset = 0.02,
+       c('No', 'Yes'), lty = c(1,2),
+       col = c('darkgreen', 'red3'), lwd = 2, cex = 1.4)
+```
+
+#### Colonne B {width=50%}
+
+Covariate **`Dependents` (children) does have a meaningful impact on churn and on duration or survival tim**.
+
+The survival curve for customers with `Dependents` (children) is noticeably higher than the baseline curve. This visual evidence suggests that customers with dependents are more loyal and have a significantly higher probability of remaining subscribed at any given point in time.
+
+To determine if this difference is statistically significant, we would perform a log-rank test. The test would likely result in a rejection of the null hypothesis, which states that the two survival curves are identical.
+
+log-rank test statistic = $-\tfrac{loglik}{df}$ where $loglik$ is the `Max. log. likelihood` or the maximum log(likelihood).
+
+The log-rank test statistic is 2322.385, giving a p-value = 0, way below 0.05 or 5%. The test is statistically significant and we can reject the null hypothesis. The two survival curves are different. The test was done : it is statistically significant and we can reject the null hypothesis.
+
+The two survival curves are different.
+
+### Takeaways
+
+Based on these findings, the marketing department should **prioritize customer segmentation** based on whether subscribers have children (`Dependents`), as this group has a significantly higher survival rate.
+
+Conversely, the analysis revealed no statistically significant difference in churn rates between genders, so focusing marketing efforts on gender composition would be an inefficient use of resources.
+
+# Model 2
+
+## Row 1
+
+**Survival Regression**
+
+We fit a **time-constant Cox Proportional Hazards (PH) model** using the same set of dependant variables: `tenure` and `Churn`. The covariates are : `PaperlessBilling`, `SeniorCitizen`, `Dependents` and `Gender`.
+
+## Row 2
+
+### Colonne A {width=33%}
+
+You cannot directly interpret the time-related parameters of a Cox PH model in the same way as a Weibull model because they are fundamentally different types of models.
+
+Cox models are **semi-parametric**, which means they **do not assume a specific shape** for the baseline **hazard function**. In contrast, Weibull models are **parametric**, as they **assume the baseline hazard follows a specific distribution** (the Weibull distribution). <u>This difference in assumptions is why the Weibull model provides interpretable shape and scale parameters, while the Cox model focuses solely on the hazard ratios.</u>
+
+```{r}
+#| include: false
+# Cox regression
+# On the left side, only dbl, int
+# On the right side, only fct
+# telco2
+# left
+#   $tenure int
+#   $Churn int
+# right (covariates)
+#   $gender fct
+#   $SeniorCitizen fct
+#   $PaperlessBilling fct
+cox_model <- survival::coxph(Surv(tenure, Churn) ~ gender + SeniorCitizen + Dependents + PaperlessBilling,
+                             method = 'efron',
+                             data = telco2)
+
+summary(cox_model)
+
+attributes(cox_model)
+```
+
+The **hazard function** represents the instantaneous risk of the event (churn) over time, given that the event has not occurred yet. The baseline hazard is the hazard for a subscriber in the reference category (where all covariates equal 0).
+
+The **red dots are the observed**. The **green line is the predicted survival curve**. The graphic is **similar to a Q-Q plot** to estimate normality (compare a covariate distribution in red against the Gaussian or Normal distribution in green). The **discrepancy**, particularly at the extremes, is a normal part of modeling real-world data. It indicates that the model's fit is not perfect, which is to be expected.
+
+The **survivor function** gives the probability of a subscriber remaining (not experiencing the event of churn) over time. This curve is directly derived from the hazard function. The shaded area or **two bands** around the curve represent the **confidence interval**, which provides a range of likely values for the true survival curve and a measure of the uncertainty in the model's estimate.
+
+### Colonne B {width=33%}
+
+```{r}
+#| echo: false
+# alias for the survfit function
+basehaz_cox_model <- basehaz(cox_model, centered = TRUE)
+
+plot(lowess(basehaz_cox_model), col = 'green3',
+     type = 'l', lwd = 2,
+     ylab = 'Duration', xlab = 'Hazard',
+     main = 'Cox hazard function', cex.lab = 1.4)
+
+points(basehaz_cox_model, col = 'red3')
+
+grid()
+```
+
+```{r}
+#| echo: false
+# plot.survfit
+plot(survfit(cox_model),
+     xlab = 'Duration', ylab = 'Survival',
+     col = c('red3', 'orange3', 'orange3'),
+     main = 'Cox survival function', cex.lab = 1.4)
+
+grid()
+
+legend('bottomright', inset = 0.02,
+       c('lower 95% CI', 'survival estimate', 'upper 95% CI'),
+       lty = c(2,1,2), col = c('orange3', 'red3', 'orange3'))
+```
+
+### Colonne C {width=33%}
+
+Unlike the **Weibull PH model** which can show an initial high hazard that drops and flattens out, the **Cox PH model** with a **constant hazard** would have a **survival curve** that drops at a steady, exponential rate over time. This means the risk of churn is consistent regardless of how long a customer has been subscribed. The curve would not show a substantial early drop followed by a flattening, as that behavior is typical of a decreasing hazard -- a scenario where the risk of churn lessens over time.
+
+The survival curves for different categories visualize the probability of remaining over time. The group with the higher hazard ratio (when `PaperlessBilling` is `Yes`) will have a lower survival curve that descends more rapidly. Conversely, the **group with the lower hazard ratio** (when `Dependents` is `Yes`) will have a **higher survival curve** that descends more gradually, indicating a **longer average survival time**.
+
+- Survival Regressions focus on the relationship between churn, time and specific customer characteristics.
+- Survival Analyses focus on the interpretation of parameters. 
+
+The survival curves for the different categories are **not parallel**. They will start at 1.0 (100% survival at time 0) and diverge over time, with the lower-hazard group maintaining a higher survival probability. The difference between the curves is most pronounced when the hazard is highest, and they tend to flatten out as the hazard approaches zero.
+
+# Model 2b
+
+## Row 1
+
+**Taking These Insights to Action**
+
+Based on the **Cox PH model**, we identified three **significant covariates of churn**. To compare their impact on an equal footing, we display their hazard ratios, which are expressed in positive, absolute terms.
+
+## Row 2
+
+### Colonne A {width=33%}
+
+```{r}
+#| echo: false
+# title: "****"
+# fig-height: 4
+# padding: 10px
+factors_of_churn <- data.frame(x = c('SeniorCitizen', 
+                                     'Dependents',
+                                     'PaperlessBilling'),
+                               y = c(30, 54, 84))
+
+ggplot(factors_of_churn, aes(x = reorder(x, y),
+                             y = y)) +
+  geom_bar(stat = 'identity',
+           fill = c('#377EB8', 'Green4', 'yellow3')) +
+  labs(x = '', y = '%') +
+  theme_tufte(base_size = 20)
+```
+
+### Colonne B {width=33%}
+
+```{r}
+#| echo: false
+# title: "****"
+# fig-height: 4
+# padding: 10px
+ggplot(telco, aes(x = PaperlessBilling)) +
+  geom_bar(fill = c('#377EB8', 'Green4')) +
+  labs(x = 'Paperless billing', y = 'Count') +
+  theme_tufte(base_size = 26)
+```
+
+### Colonne C {width=33%}
+
+```{r}
+#| echo: false
+# title: "****"
+# fig-height: 4
+# padding: 10px
+ggplot(telco, aes(x = Dependents)) +
+  geom_bar(fill = c('#377EB8', 'Green4')) +
+  labs(x = 'Dependents', y = 'Count') +
+  theme_tufte(base_size = 26)
+```
+
+## Row 3
+
+While the hazard ratio for `SeniorCitizen` may be the lowest in magnitude compared to the other significant covariates, it is still a statistically significant factor influencing churn.
+
+A more strategic approach is to **prioritize resources based on the magnitude of each covariate's impact**. Given that the other covariates have a much larger effect on churn, marketing and retention efforts would likely be more effective if focused on those factors first.
+
+The `SeniorCitizen` factor, while statistically relevant, may be a lower priority for initiatives aimed at curbing churn.
+
+The finding that `PaperlessBilling` is a significant covariate in churn is not surprising. It suggests a correlation between a preference for paperless billing and a customer segment that may be more tech-savvy and responsive to new product offerings. This group might be more prone to churning for a new contract that includes the latest devices and gadgets. Given that the majority of the customer base falls into this category, this represents a major business risk. The company should investigate the underlying drivers of churn within this segment to develop targeted retention strategies.
+
+Based on the model, customers with `Dependents` are a highly valuable segment. Although they represent a smaller portion of the customer base compared to those without children, they are significantly more loyal.This finding suggests a strong business case for retaining this segment. The company should prioritize efforts to identify and cater to these customers, perhaps with family-oriented plans or loyalty programs that recognize their value.
+
+# Conclusion
+
+## Row 1
+
+### Colonne A {width=75%}
+
+Survival Analysis is a versatile tool for addressing a variety of business situations:
+
+- Business Planning: it can be used to forecast the monthly number of customer churn events and to monitor current lapse rates.
+- Customer Segmentation: the model can predict each customer's time to the next purchase, which helps in identifying and differentiating 'active' versus 'inactive' customers.
+- Campaign Evaluation: it allows for the precise evaluation of marketing campaigns by monitoring their effect on customer survival rates.
+
+Ultimately, these applications all have a direct impact on the Customer Lifetime Value (LTV). Furthermore, this analysis can be extended to evaluate the potential of win-back initiatives by estimating the LTV of reactivated customers.
+
+<center>
+![](img/img7.png){width=25%}
+</center>
+
+### Colonne B {width=25%}
+
+Additional Resources
+
+- The survival package documentation.
+- The eha (event history analysis) package documentation.
+- For multiple comparisons, ggplot2 does facet layouts.
+- If modeling time-varying Cox proportional hazards regression model, tidyr is useful for reshaping wide data.frames into long data.frames.
+- With the mstate package, we can model multistate and competing risks. LTV or win-backs imply multistates.
+
+- [Dayne Batten's blog posts](http://daynebatten.com/category/survival-analysis/) on Survival Analysis in the business setting.
+- [Barry Leventhal's presentation](http://www.barryanalytics.com/Downloads/Presenations/Survival%20Analysis.pdf) with business insights.
