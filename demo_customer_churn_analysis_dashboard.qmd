@@ -183,7 +183,7 @@ format:
 ```{r}
 #| label: setup
 #| include: false
-setwd("/home/ugo/Documents/CoursR/demo_qmd_churn_dashboard")
+#setwd("/home/ugo/Documents/CoursR/demo_qmd_churn_dashboard")  # COMMENT when uploading to GitHub
 
 library(ggplot2)
 library(gridExtra)
