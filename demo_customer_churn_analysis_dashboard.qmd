@@ -1,58 +1,189 @@
 ---
-title: "demo"
-subtitle: customer_churn_analysis
-author:
-#  - name: Copyright © 2025 Hugues Santerre
-  - name: Colleague One
-    email: colleague_one@email.com  # si html
-    affiliations: position, department...  # si html
-  - name: Colleague Two
-    email: colleague_two@email.com
-    affiliations: position, department...
-institute:
-  - "organization,\n\naddress\n\nwebsite..."  # si html
-  - "organization,\n\naddress\n\nwebsite..."
-editor: source
-editor_options:
-  chunk_output_type: console
-callout-appearance: default
-execute:
-  echo: true  # true, false, fenced
-  include: true
-  eval: true
-  enabled: true  # false ; lorsque le doc n'a pas de code, que de la prose / markdown
-  output: true  # true, false, asis
-  warning: false
-  message: false
-  error: false
-  cache: false  # true, false, refresh
-  freeze: false  # true, false, auto ; en mode Project
-  keep-md: false
-  keep-ipynb: false
-knitr:
+title: "Demo"  # titre et nom fichiers html, pdf...
+subtitle: "Custumer Churn Analysis"
+description: "Custumer Churn Analysis"  # ; aussi pour le référencement
+#output-file: "mon_fichier"  # changer nom fichiers html, pdf, ... compilés (render) dans output-dir: en haut ; par défaut, le nom est title: ou nom.qmd
+author:  # détails pour html
+  - name: "Colleague Un"
+  - name: "Colleague Deux"
+###############################################################################
+engine: knitr  # knitr, jupyter
+knitr:  # pour blocs de code
   opts_chunk:
-    comment: ""
-    results: hold  # markup, asis, hold, hide
+    comment: ""  # "#>" changer le préfixe des résultats de code
+    results: markup  # markup, asis, hold, hide ; résultats
     R.options:
-      knitr.graphics.auto_pdf: true
+      knitr.graphics.auto_pdf: true  # pour format pdf
   opts_knit:
-    verbose: true
+    verbose: true  # affichage durant la compilation (render)
+editor: source  # source (brut), visual (UI) ; editeur markdown
+editor_options:
+  chunk_output_type: console  # inline, console ; résultats
+callout-appearance: default  # default, simple, minimal; pour warning, note, tip, etc.
+###############################################################################
+lang: en  # langue principale ; aussi possible dans chaque .qmd
+#otherlangs: [zh]  # langues secondaires ; mandarin ; aussi possible dans chaque .qmd
+language:  # changer des champs par défaut
+  en:  # pour cette langue
+    search-text-placeholder: "search"  # dans la boite de recherche
+    title-block-author-single: "Written by"
+    title-block-author-plural: "Written and revised by"
+#    title-block-affiliation-single: ""
+#    title-block-affiliation-plural: ""
+#    title-block-published: "Last update"
+#    title-block-modified: "Last update"
+#    toc-title-document: "Content"
+#    section-title-abstract: ""
+###############################################################################
+execute:  # paramétrer blocs de code et résultats
+  echo: true  # true, false, fenced  # afficher bloc
+  include: true  # inclure bloc
+  eval: true  # évaluer bloc
+  enabled: true  # tout évaluer ; projet doc sans aucun code, que markdown
+  output: true  # true, false, asis ; format résultats
+  warning: false  # avertissements
+  error: false  # avertissements
+  cache: false  # true, false, refresh ; true et refresh pour minimiser recalculs ; une cache par .qmd
+  freeze: false  # true, false, auto ; auto compile code à la compilation si le code change ; true ne compile pas code à la compilation ; avec fichier .Rproj seulement
+  keep-md: false  # garder, supprimer le fichier transitoire
+  keep-ipynb: false  # supprimer le fichier
+###############################################################################
+#bibliography: sources.bib  # fichier à coté de _quarto.yml
+#cite-method: citeproc  # citeproc (simple), natbib, biblatex ; avec # avec cite-method: citeproc, le style de citations et bibliographie est Chicago, sinon, il faut...
+#csl: ieee.csl  # apa.csl, nature.csl, etc. à coté de _quarto.yml ou...
+#csl: https://www.zotero.org/styles/ieee  # etc.
+# avec cite-method: natbib...
+#natbiboptions: "authoryear,round,comma"  # etc. et...
+#biblio-style: plainnat  # plainnat, abbrvnat, unsrtnat, etc.
+# avec cite-method: biblatex...
+#biblatexoptions: ["backend=biber","style=apa","citestyle=apa"]  # etc.
+#link-citations: true  # lien de citation vers la bibliographie
+#clean-citations: true  # supprimer les espaces superflus
+# la bibliographie est automatiquement créée à la fin du document (il faut ajouter à la dernière ligne # Références, ## Bibliographie...) ; mais il possible de changer, voir plus bas
+#suppress-bibliography: false  # crée automatiquement la bibliographie
+#suppress-bibliography: true  # traiter les citations dans le texte sans créer bibliographie automatique
+# la bibliographie est automatiquement créée à la fin du document ou de chaque .qmd (il faut ajouter à la dernière ligne # Références, ## Bibliographie...) ; mais il possible de changer, voir plus bas
+# le mieux est false et l'ajouter de ce qui suit à la fin du document .qmd pour forcer le titre
+
+#-----------------------------
+# References, Bibliographie
+
+#::: {#refs}
+#:::
+
+#-----------------------------
+
+# le fichier.bib contient des sources du genre...
+#@article{knuth84,
+#  author = {Knuth, Donald E.},
+#  title = {Literate Programming},
+#  year = {1984},
+#  issue_date = {May 1984},
+#  publisher = {Oxford University Press, Inc.},
+#  address = {USA},
+#  volume = {27},
+#  number = {2},
+#  issn = {0010-4620},
+#  url = {https://doi.org/10.1093/comjnl/27.2.97},
+#  doi = {10.1093/comjnl/27.2.97},
+#  journal = {Comput. J.},
+#  month = may,
+#  pages = {97–111},
+#  numpages = {15}
+#}
+
+# citation dans le texte avec...
+# See @knuth84 for additional discussion of literate programming.
+# See @sec-introduction for additional discussion.
+# See [Chap. @sec-introduction] for...
+# See [-@sec-introduction] for...
+# See [-@sec-citation] for...
+# forcer l'affichage de toutes les sources avec nocite: | @*
+# et plus...
+
+# autres citations pour fig, tab, form
+###############################################################################
+# liens internes (cross references) vers section, .qmd, .qmd+section
+#[about](s#plus)
+#[about](summary.qmd)
+#[about](summary.qmd#plus)
+###############################################################################
+# déterminer majorité des paramètres de fig et tbl
+# comme la taille
+# directement à la fig et à la tbl
+###############################################################################
+# aucun html, css, js sur mesure n'est ajouté
+# mais aussi possible...
+###############################################################################
 format:
   dashboard:
-    theme: journal  # cosmo, journal, united, darkly, etc. + custom
+    embed-resources: true  # un seul document HTML pour les images, etc., mais fichier plus lourd
+    self-contained-math: false  # idem pour les équations mais plus lourd
+##########
+    theme:  # apparence des éléments du document ; https://bootswatch.com/ ; un thème ou un thème modifié par des fichiers css/js ou plusieurs thèmes
+      light: readable  # mode clair
+      dark: darkly  # mode foncé
+    respect-user-color-scheme: true  # ordinateur qui lit fichier détermine light ou dark par défaut
+#    theme: united  # cosmo, journal, united, darkly, etc. + custom
+    # pour dashboard lux (élégant), slate (sombre), flatly (moderne) ou morph (néomorphisme)
+    highlight-style: arrow  # pygments, kate, zenburn, breezedark, arrow... ; apparence des blocs de code
+#    classoption: []  # modifier affichage des équations maths, par exemple
+    colorlinks: true  # colorer liens (toc, hyperliens, liens internes, citations)
+    links-as-notes: false  # liens en note de bas de page
+##########
+    smooth-scroll: true  # menus déroulants plus fluides
+##########
+    link-external-icon: true  # ajouter icône aux liens
+    link-external-newwindow: true  # ouvrir lien dans nouvel onglet
+    citations-hover: true  # effet sur texte et bibliographie
+    footnotes-hover: true  # effet sur note en bas de page
+    crossrefs-hover: true  # effet sur liens internes (cross references)
+    fig-align: left  # left, right, center ; aligner figures, images
+    fig-caption: true  # afficher légende de figure, image
+    fig-cap-location: bottom  # top, bottom, margin ; légende de figure, image
+    lightbox: auto  # true, false, auto ; activer pop-up-zoom des images ; {.lightbox}, {.nolightbox} avec image
+    tbl-cap-location: top  # top, bottom, margin ; légende de tableau
+#    column: screen  # body, page-inset, page, screen-inset, screen ; étendue en largeur des images ; attention à ne pas court-circuiter les paramètres de chaque image
+    code-fold: false  # true, show, false ; cacher-déplier, montrer-déplier ou montrer blocs de code
+#    code-summary: "Afficher le code source" # changer champ par défaut
+    code-tools: false  # ajouter icône ; ouvrir le code source du .qmd
+    code-copy: true  # true, false; hover ; montrer, cacher icône de copie du bloc de code
+    code-overflow: scroll  # wrap, scroll ; gérer les longues lignes de code
+    code-block-bg: true  # fond de bloc de code
+    code-block-border-left: true  # séparateur des numéros dans blocs de code
+    code-line-numbers: true  # numéro de ligne dans blocs de code
+#    code-link: false  # lien vers la doc du code ; nécessite package R downlit
+    format-links: true  # icône pour télécharger autres versions que html (si existantes)
+#    format-links: [html, pdf, docx]  # aussi
+#    mainfont:  # police du texte autre que celle du theme:
+#    fontsize: 11pt  # taille de police autre que celle du theme:
+#    linestretch: 1.5  # interligne autre que celle du theme:
+#    fontcolor:  # couleur du texte autre que celle du theme:
+#    linkcolor:  # couleur des liens autre que celle du theme:
+#    css: styles.css  # personnaliser theme: ou plus
+#    include-in-header: img/header.html  # ajouter scripts d'analyse, polices Web complexes
+#    include-before-body:  # ajouter bandeaux d'annonce, éléments qui doivent apparaitre avant le contenu
+#    include-after-body:  # manipuler DOM, script.js
+##########
+    orientation: rows  # rows d'abord, columns d'abord ; priorité en architecture
+    logo: img/spark.png  # médaillon dans navbar
+    favicon: img/favicon.ico  # image onglet web
+#    accent: crimson  # blue, red, darkgreen, orange, steelblue, crimson... ; couleur d'accentuation bordures et titres
     nav-bar: true  # barre latérale pour la navigation
-    scrolling: true  # menu déroulant est dans la page
-    orientation: rows  ## rows d'abord, columns d'abord
-    logo: img/spark.png
-engine: knitr
-params:
-  zoom: 3
+#    nav-buttons:
+#    sidebar:  # ajouter sidebar avec {.sidebar}
+#    footer: "Dashboard"    
+    fill: true  # composants s'étirent pour remplir toute la hauteur, sans créer de barre de défilement globale
+    scrolling: true  # menu déroulant est dans la page, mais peut faire disparaitre navbar
+    expandable: true  # icône d'expansion sur chaque carte, permettre à l'utilisateur de la mettre en plein écran
+    gap: 10px  # espace entre les cartes ou les lignes
+#  social: [twitter, facebook, linkedin]  # pour html ; icônes de liens
 ---
 
 ```{r}
 #| label: setup
 #| include: false
-#setwd("/home/ugo/Documents/CoursR/demo_qmd_dashboard")
+setwd("/home/ugo/Documents/CoursR/demo_qmd_churn_dashboard")
 
 library(ggplot2)
 library(gridExtra)
