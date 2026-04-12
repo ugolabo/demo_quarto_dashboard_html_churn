@@ -17,7 +17,7 @@ There are [two ways to publish](#publish) a Quarto document on GitHub.
 
 ## Publish
 
-A <a href="[https://ugolabo.github.io/demo_quarto_article_html_chars/](https://quarto.org/docs/guide/)" target="_blank">Quarto document</a> blends textual content with or without code blocks. The code can be in R, Python, SQL and many other languages. Code is also used to generate tables, charts and maps ; whether static or interactive.
+A <a href="https://quarto.org/docs/guide/" target="_blank">Quarto document</a> blends textual content with or without code blocks. The code can be in R, Python, SQL and many other languages. Code is also used to generate tables, charts and maps ; whether static or interactive.
 
 This repo uses **Option 1**. Build and deployment details can be found in the Actions tab above.
 
@@ -29,5 +29,5 @@ This repo uses **Option 1**. Build and deployment details can be found in the Ac
 | **Privacy** | Code and data are on GitHub; the project is reproducible | Only the final result is online; the source project remains private |
 | **Heavy Computations** | Limited by GitHub server resources | Unlimited (processed locally) |
 | **Advantages** | Workflow automation, online editing | Data privacy, simple result sharing |
-| **Web Page Setup** | Settings > Pages, main branch | Settings > Pages, gh-pages branch |
+| **Web Page Setup** | Settings > Pages, **gh-pages**, **/ (root)** | Settings > Pages, main branch, / (root) |
 
